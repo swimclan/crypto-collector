@@ -1,0 +1,22 @@
+{
+  "name": "crypto-collector",
+  "version": "0.0.1",
+  "description": "Price candle collector",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "server": "node server.js"
+  },
+  "author": "Matthew Herron",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "candlestick-models": "0.0.2",
+    "coinbase-pro": "^0.9.0",
+    "dotenv": "^8.0.0",
+    "express": "^4.17.1",
+    "redis": "^2.8.0",
+    "socket.io-client": "^2.2.0",
+    "subvector": "^0.0.6"
+  }
+}
