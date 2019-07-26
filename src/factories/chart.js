@@ -1,7 +1,7 @@
 const { Chart, Simulator } = require('candlestick-models');
 
 module.exports = function({
-  timeframe = '1m',
+  timeframe = process.env.PERIOD || '1m',
   websocket = Simulator(Number(process.env.SIMULATOR_VOLATILITY)),
   propMap = (function() {
     const propMap = new Map();
