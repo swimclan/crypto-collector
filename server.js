@@ -19,11 +19,16 @@ db.on('error', (error) => console.log(error));
 const Candles = Collection('candle', db);
 const vectors = Vectors();
 
-Chart(coinbase).on('close', (data) => {
+const coinbaseChart = Chart(coinbase);
+coinbaseChart.on('close', (data) => {
   vectors.addPrice(data.last);
   Candles.add(data).then((index) => {
     console.log(`Added candle: ${index}`);
   })
+});
+
+coinbaseChart.on('error', (error) => {
+  console.log('An error occured', error);
 });
 
 app.get('/api/candles/last/:n', function(req, res, next) {

@@ -21,5 +21,6 @@ module.exports = {
     return propMap;
   },
   listenerEventName: 'message',
+  errorEventName: 'error',
   filterFn(quote) { return quote.type === 'match' }
 };
