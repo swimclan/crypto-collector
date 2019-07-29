@@ -5,7 +5,6 @@ const coinbase = require('./src/factories/coinbase');
 const Chart = require('./src/factories/chart');
 const Collection = require('./src/collection');
 const Vectors = require('./src/vectors');
-const average = require('./src/utils').average;
 require('dotenv').config();
 
 const app = express();
@@ -48,6 +47,26 @@ app.get('/api/indicators/movingaverage/:type/:period', function(req, res, next) 
       break;
     case 'exponential':
       responseValue = vectors.getEMA(+period);
+      break;
+    default:
+      responseValue = null;
+  }
+  res.status(200).json(responseValue);
+});
+
+app.get('/api/indicators/regression/:type/:period', function(req, res, next) {
+  const period = req.params.period;
+  const type = req.params.type;
+  let responseValue;
+  switch (type) {
+    case 'slope':
+      responseValue = vectors.getSlope(period);
+      break;
+    case 'yintercept':
+      responseValue = vectors.getYIntercept(period);
+      break;
+    case 'r':
+      responseValue = vectors.getR(period);
       break;
     default:
       responseValue = null;
