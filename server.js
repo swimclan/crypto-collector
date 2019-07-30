@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser')
 const redis = require('redis');
-const coinbase = require('./src/factories/coinbase');
+const Coinbase = require('./src/factories/coinbase');
 const Chart = require('./src/factories/chart');
 const Collection = require('./src/collection');
 const Vectors = require('./src/vectors');
@@ -10,6 +10,7 @@ require('dotenv').config();
 const app = express();
 app.use(bodyParser.json({ strict: false }));
 const PORT = process.env.PORT || 3000;
+const SOCKET_CYCLE_TIME = +process.env.SOCKET_CYCLE_TIME;
 
 const db = redis.createClient({ url: process.env.REDIS_DB_URL, port: process.env.REDIS_DB_PORT });
 db.on('connect', () => console.log('Redis DB Connected'));
@@ -17,18 +18,42 @@ db.on('error', (error) => console.log(error));
 
 const Candles = Collection('candle', db);
 const vectors = Vectors();
+let coinbaseChart;
 
-const coinbaseChart = Chart(coinbase);
-coinbaseChart.on('close', (data) => {
+const chartCloseHandler = (data) => {
   vectors.addPrice(data.last);
   Candles.add(data).then((index) => {
     console.log(`Added candle: ${index}`);
-  })
-});
+  });
+};
 
-coinbaseChart.on('error', (error) => {
+const chartErrorHandler = (error) => {
   console.log('An error occured', error);
-});
+}
+
+const initCoinbaseChart = () => {
+  coinbaseChart && coinbaseChart.off('close', chartCloseHandler);
+  coinbaseChart && coinbaseChart.off('error', chartErrorHandler);
+  coinbaseChart = null;
+  coinbaseChart = Chart(Coinbase());
+  coinbaseChart.on('close', chartCloseHandler);
+  coinbaseChart.on('error', chartErrorHandler);
+  return coinbaseChart;
+}
+
+const cycleChartConnection = () => {
+  initCoinbaseChart(coinbaseChart, chartCloseHandler, chartErrorHandler);
+  setTimeout(() => {
+    console.log('Reset websocket!');
+    cycleChartConnection();
+  }, SOCKET_CYCLE_TIME);
+}
+
+SOCKET_CYCLE_TIME ? 
+  cycleChartConnection()
+  :
+  initCoinbaseChart(coinbaseChart, chartCloseHandler, chartErrorHandler);
+
 
 app.get('/api/candles/last/:n', function(req, res, next) {
   const n = req.params.n;
@@ -74,5 +99,5 @@ app.get('/api/indicators/regression/:type/:period', function(req, res, next) {
   res.status(200).json(responseValue);
 });
 
-app.listen(PORT, () => console.log(`Server listening on port ${PORT}!`))
+app.listen(PORT, () => console.log(`Server started at ${new Date().toString()} on port: ${PORT}`));
 
