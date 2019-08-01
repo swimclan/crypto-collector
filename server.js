@@ -31,29 +31,20 @@ const chartErrorHandler = (error) => {
   console.log('An error occured', error);
 }
 
-const initCoinbaseChart = () => {
-  coinbaseChart && coinbaseChart.off('close', chartCloseHandler);
-  coinbaseChart && coinbaseChart.off('error', chartErrorHandler);
-  coinbaseChart = null;
-  coinbaseChart = Chart(Coinbase());
-  coinbaseChart.on('close', chartCloseHandler);
-  coinbaseChart.on('error', chartErrorHandler);
-  return coinbaseChart;
-}
-
 const cycleChartConnection = () => {
-  initCoinbaseChart(coinbaseChart, chartCloseHandler, chartErrorHandler);
+  const newCoinbase = Coinbase();
+  const newWebsocket = newCoinbase.websocket;
+  coinbaseChart.recycleWebsocket(newWebsocket);
   setTimeout(() => {
     console.log('Reset websocket!');
     cycleChartConnection();
   }, SOCKET_CYCLE_TIME);
 }
 
-SOCKET_CYCLE_TIME ? 
-  cycleChartConnection()
-  :
-  initCoinbaseChart(coinbaseChart, chartCloseHandler, chartErrorHandler);
-
+coinbaseChart = Chart(Coinbase());
+coinbaseChart.on('close', chartCloseHandler);
+coinbaseChart.on('error', chartErrorHandler);
+cycleChartConnection();
 
 app.get('/api/candles/last/:n', function(req, res, next) {
   const n = req.params.n;
