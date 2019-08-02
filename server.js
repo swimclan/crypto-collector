@@ -20,6 +20,16 @@ const Candles = Collection('candle', db);
 const vectors = Vectors();
 let coinbaseChart;
 
+const cycleChartConnection = (loop = false) => {
+  const newCoinbase = Coinbase();
+  const newWebsocket = newCoinbase.websocket;
+  coinbaseChart.recycleWebsocket(newWebsocket);
+  loop && setTimeout(() => {
+    console.log('Reset websocket!');
+    cycleChartConnection(true);
+  }, SOCKET_CYCLE_TIME);
+}
+
 const chartCloseHandler = (data) => {
   vectors.addPrice(data.last);
   Candles.add(data).then((index) => {
@@ -29,22 +39,13 @@ const chartCloseHandler = (data) => {
 
 const chartErrorHandler = (error) => {
   console.log('An error occured', error);
-}
-
-const cycleChartConnection = () => {
-  const newCoinbase = Coinbase();
-  const newWebsocket = newCoinbase.websocket;
-  coinbaseChart.recycleWebsocket(newWebsocket);
-  setTimeout(() => {
-    console.log('Reset websocket!');
-    cycleChartConnection();
-  }, SOCKET_CYCLE_TIME);
+  cycleChartConnection(false);
 }
 
 coinbaseChart = Chart(Coinbase());
 coinbaseChart.on('close', chartCloseHandler);
 coinbaseChart.on('error', chartErrorHandler);
-cycleChartConnection();
+SOCKET_CYCLE_TIME && cycleChartConnection(true);
 
 app.get('/api/candles/last/:n', function(req, res, next) {
   const n = req.params.n;

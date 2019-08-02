@@ -11,7 +11,8 @@ module.exports = function({
     return propMap;
   })(),
   filterFn = data => data,
-  listenerEventName = 'quote'
+  listenerEventName = 'quote',
+  errorEventName = 'error'
 } = {})
 {
   if (!typeof timeframe === 'string') {
@@ -21,6 +22,7 @@ module.exports = function({
   return Chart(websocket, timeframe, {
     propMap,
     filterFn,
-    listenerEventName
+    listenerEventName,
+    errorEventName
   });
 }
