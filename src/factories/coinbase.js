@@ -1,6 +1,6 @@
 var CoinbasePro = require('coinbase-pro');
 
-module.exports = function() {
+module.exports = function(messageFn) {
   return {
     get websocket() {
       return new CoinbasePro.WebsocketClient(
@@ -21,8 +21,9 @@ module.exports = function() {
       propMap.set('symbol', 'product_id');
       return propMap;
     },
+    messageFn,
     listenerEventName: 'message',
     errorEventName: 'error',
-    filterFn(quote) { return quote.type === 'match' }
+    filterFn(message) { return message.type === 'match' }
   }
 }

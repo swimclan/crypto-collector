@@ -11,6 +11,7 @@ module.exports = function({
     return propMap;
   })(),
   filterFn = data => data,
+  messageFn = message => message,
   listenerEventName = 'quote',
   errorEventName = 'error'
 } = {})
@@ -22,6 +23,7 @@ module.exports = function({
   return Chart(websocket, timeframe, {
     propMap,
     filterFn,
+    messageFn,
     listenerEventName,
     errorEventName
   });

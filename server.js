@@ -18,10 +18,17 @@ db.on('error', (error) => console.log(error));
 
 const Candles = Collection('candle', db);
 const vectors = Vectors();
-let coinbaseChart;
+let coinbaseChart, lastHeartbeat = Date.now();
+
+const chartHeartbeatHandler = (message) => {
+  if (message.type === 'heartbeat') {
+    const now = Date.now();
+    lastHeartbeat = now;
+  }
+}
 
 const cycleChartConnection = (loop = false) => {
-  const newCoinbase = Coinbase();
+  const newCoinbase = Coinbase(chartHeartbeatHandler);
   const newWebsocket = newCoinbase.websocket;
   coinbaseChart.recycleWebsocket(newWebsocket);
   loop && setTimeout(() => {
@@ -37,15 +44,28 @@ const chartCloseHandler = (data) => {
   });
 };
 
+const timer = (interval) => {
+  setTimeout(() => {
+    const now = Date.now();
+    heartbeatAge = now - lastHeartbeat;
+    if (heartbeatAge > interval) {
+      console.log('Lost connection to websocket!  Recycling...');
+      cycleChartConnection();
+    }
+    timer(interval);
+  }, 10000)
+}
+
 const chartErrorHandler = (error) => {
   console.log('An error occured', error);
   cycleChartConnection(false);
 }
 
-coinbaseChart = Chart(Coinbase());
+coinbaseChart = Chart(Coinbase(chartHeartbeatHandler));
 coinbaseChart.on('close', chartCloseHandler);
 coinbaseChart.on('error', chartErrorHandler);
 SOCKET_CYCLE_TIME && cycleChartConnection(true);
+timer(5000);
 
 app.get('/api/candles/last/:n', function(req, res, next) {
   const n = req.params.n;
