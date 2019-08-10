@@ -29,7 +29,7 @@ module.exports = function(modelname, db) {
     },
     add: function(obj) {
       return new Promise((resolve, reject) => {
-        const candle = Model(modelname, db);
+        const candle = Model(modelname, db, 'redis');
         candle.create(obj, this.index).then((data) => {
           const index = this.index++;
           resolve(index);
