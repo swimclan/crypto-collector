@@ -16,6 +16,7 @@ app.use(bodyParser.json({ strict: false }));
 const PORT = process.env.PORT || 3000;
 const SOCKET_CYCLE_TIME = +process.env.SOCKET_CYCLE_TIME;
 const MAX_PERIODS = +process.env.MAX_PERIODS;
+const PERIOD_INTERVAL = +process.env.PERIOD_INTERVAL;
 
 // Connect Redis
 const redisdb = redis.createClient({ url: process.env.REDIS_DB_URL, port: process.env.REDIS_DB_PORT });
@@ -40,7 +41,7 @@ postgresdb.authenticate()
   });
 
 const CandlesCache = Cache('candle', redisdb);
-const CandleModel = Model('candle', postgresdb, 'postgres', Schema(MAX_PERIODS));
+const CandleModel = Model('candle', postgresdb, 'postgres', Schema(MAX_PERIODS, PERIOD_INTERVAL));
 const vectors = Vectors();
 let coinbaseChart, lastHeartbeat = Date.now();
 
@@ -64,7 +65,7 @@ const cycleChartConnection = (loop = false) => {
 const chartCloseHandler = (data) => {
   vectors.addPrice(data.last);
   CandlesCache.add(data).then((index) => {
-    CandleModel.create(CandleProvider(MAX_PERIODS, data, vectors));
+    CandleModel.create(CandleProvider(MAX_PERIODS, PERIOD_INTERVAL, data, vectors));
     console.log(`Added candle: ${index}`);
   });
 };

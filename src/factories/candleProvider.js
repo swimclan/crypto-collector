@@ -1,6 +1,6 @@
-module.exports = function(periods, candlestick, vectors) {
+module.exports = function(periods, interval, candlestick, vectors) {
   const candle = Object.assign({}, candlestick);
-  for (let i=2; i<=periods; i++) {
+  for (let i=interval; i<=periods; i+=interval) {
     candle[`sma${i}`] = vectors.getSMA(i);
     candle[`ema${i}`] = vectors.getEMA(i);
     candle[`slope${i}`] = vectors.getSlope(i);

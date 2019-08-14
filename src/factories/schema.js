@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 
-module.exports = function(periods) {
+module.exports = function(periods, interval) {
   const schema = {
     id: {
       type: Sequelize.UUID,
@@ -28,7 +28,7 @@ module.exports = function(periods) {
       type: Sequelize.FLOAT
     }
   };
-  for (let i=2; i<=periods; i++) {
+  for (let i=interval; i<=periods; i+=interval) {
     schema[`ema${i}`] = {
       type: Sequelize.FLOAT
     }
